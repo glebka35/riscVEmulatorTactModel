@@ -6,8 +6,19 @@
 #define TACTICMODEL_DECODEPHASE_H
 
 #include "PipelineStructure.h"
+#include "Instructions.h"
 
 class DecodePhase{
+public:
+    void doWork(PipelineStructure *pipeline, uint32_t *x, uint32_t *pc);
+
+    void decode(rTypeInstruction rType, PipelineStructure *pipeline, uint32_t *x);
+    void decode(iTypeInstruction iType, PipelineStructure *pipeline, uint32_t *x, uint32_t *pc );
+    void decode(uTypeInstruction uType, PipelineStructure *pipeline, uint32_t *x );
+    void decode(jTypeInstruction jType, PipelineStructure *pipeline, uint32_t *x, uint32_t *pc);
+    void decode(iLoadTypeInstruction iLoadType, PipelineStructure *pipeline, uint32_t *x );
+    void decode(bTypeInstruction bType, PipelineStructure *pipeline, uint32_t *x );
+    void decode(sTypeInstruction sType, PipelineStructure *pipeline, uint32_t *x );
 
 };
 

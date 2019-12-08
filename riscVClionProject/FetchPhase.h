@@ -6,10 +6,12 @@
 #define TACTICMODEL_FETCHPHASE_H
 
 #include "PipelineStructure.h"
+#include <cstdint>
+#include "Memory.h"
 
 class FetchPhase{
 public:
-    void doWork();
+    void doWork(PipelineStructure *pipeline, uint32_t *pc, Memory *memory);
 
 };
 

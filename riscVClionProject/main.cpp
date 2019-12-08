@@ -3,6 +3,9 @@
 
 int main() {
     Emulator riscV;
-//    riscV.start();
+
+    riscV.loadProgramToMemory("ptload.txt");
+    riscV.doWork();
+    riscV.printState();
     return 0;
 }

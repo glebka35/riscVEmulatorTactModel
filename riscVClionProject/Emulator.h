@@ -13,6 +13,8 @@
 #include "WriteBackPhase.h"
 #include "PipelineStructure.h"
 
+#include <fstream>
+
 
 class Emulator {
 public:
@@ -39,6 +41,8 @@ public:
 
     void start();
     void end();
+    void loadProgramToMemory(std::string fileName);
+    void printState();
 
     void doWork();
 };

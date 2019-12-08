@@ -5,9 +5,11 @@
 #ifndef TACTICMODEL_PIPELINESTRUCTURE_H
 #define TACTICMODEL_PIPELINESTRUCTURE_H
 enum {
-    SUM,
+    ADD,
     SUB,
-    XOR
+    XOR,
+    SHIFT_LEFT,
+    SHIFT_RIGHT
 
 } AluOperations;
 
