@@ -5,9 +5,9 @@
 #ifndef TACTICMODEL_WRITEBACKPHASE_H
 #define TACTICMODEL_WRITEBACKPHASE_H
 
-#include "Phase.h"
+#include "PipelineStructure.h"
 
-class WriteBackPhase : public Phase {
+class WriteBackPhase {
 
 };
 

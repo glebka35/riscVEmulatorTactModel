@@ -5,9 +5,9 @@
 #ifndef TACTICMODEL_MEMORYPHASE_H
 #define TACTICMODEL_MEMORYPHASE_H
 
-#include "Phase.h"
+#include "PipelineStructure.h"
 
-class MemoryPhase : public Phase {
+class MemoryPhase{
 
 };
 

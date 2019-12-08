@@ -19,3 +19,39 @@ void Emulator::start() {
     // ининциализиурем PC
     // TODO
 }
+
+void Emulator::doWork() {
+    while(pc!=0){
+
+        // increment tact
+        if(!pipeline.fetch.isStole){
+            pipeline.decode.instruction = pipeline.fetch.instruction;
+        }
+
+        if(!pipeline.decode.isStole){
+            pipeline.execute.rs1 = pipeline.decode.rd1;
+            pipeline.execute.rs2 = pipeline.decode.rd2;
+            pipeline.execute.operation = pipeline.decode.operation;
+            pipeline.execute.isMemoryNeed = pipeline.decode.isMemoryNeed;
+            pipeline.execute.isWriteBackNeed = pipeline.decode.isWriteBackNeed;
+            pipeline.execute.regNumForWB = pipeline.decode.regNumForWB;
+        }
+
+        if(!pipeline.execute.isStole){
+            if(!pipeline.execute.isMemoryNeed){
+                pipeline.writeBack.wd = pipeline.execute.rd;
+                pipeline.writeBack.regNumForWB = pipeline.execute.regNumForWB;
+            } else {
+                pipeline.memory.wdata = pipeline.execute.data;
+                pipeline.memory.addr = pipeline.execute.rd;
+                pipeline.memory.isWriteBackNeed = pipeline.execute.isWriteBackNeed;
+            }
+        }
+
+        if(!pipeline.memory.isStole && pipeline.memory.isWriteBackNeed && pipeline.memory.isMemoryNeed) {
+            pipeline.writeBack.wd = pipeline.memory.rdata;
+            pipeline.writeBack.regNumForWB = pipeline.memory.regNumForWB;
+        }
+    }
+
+}

@@ -5,9 +5,9 @@
 #ifndef TACTICMODEL_FETCHPHASE_H
 #define TACTICMODEL_FETCHPHASE_H
 
-#include "Phase.h"
+#include "PipelineStructure.h"
 
-class FetchPhase : public Phase {
+class FetchPhase{
 public:
     void doWork();
 

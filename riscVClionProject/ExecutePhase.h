@@ -5,9 +5,9 @@
 #ifndef TACTICMODEL_EXECUTEPHASE_H
 #define TACTICMODEL_EXECUTEPHASE_H
 
-#include "Phase.h"
+#include "PipelineStructure.h"
 
-class ExecutePhase : public Phase {
+class ExecutePhase{
 };
 
 

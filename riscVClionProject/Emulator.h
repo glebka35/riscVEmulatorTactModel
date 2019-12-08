@@ -11,6 +11,7 @@
 #include "ExecutePhase.h"
 #include "MemoryPhase.h"
 #include "WriteBackPhase.h"
+#include "PipelineStructure.h"
 
 
 class Emulator {
@@ -33,9 +34,13 @@ public:
     // Program counter
     unsigned int pc;
 
+    // Pipelined structure
+    PipelineStructure pipeline;
 
     void start();
     void end();
+
+    void doWork();
 };
 
 
