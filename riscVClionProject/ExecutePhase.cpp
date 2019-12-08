@@ -15,6 +15,13 @@ void ExecutePhase::doWork(PipelineStructure *pipeline) {
         case XOR:
             pipeline->execute.rd = pipeline->execute.rs1 ^ pipeline->execute.rs2;
             break;
+        case SHIFT_LEFT:
+            pipeline->execute.rd = pipeline->execute.rs1 << pipeline->execute.rs2;
+            break;
+        case SHIFT_RIGHT:
+            pipeline->execute.rd = pipeline->execute.rs1 >> pipeline->execute.rs2;
+            break;
+
         default:
             std::cout<<"Unrecognized operation in ALU"<<std::endl;
     }
