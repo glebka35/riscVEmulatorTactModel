@@ -40,6 +40,18 @@ void Emulator::loadProgramToMemory(std::string fileName) {
 void Emulator::doWork() {
     while (pc != 0) {
 
+        //Do EXECUTE Phase
+        if(!pipeline.execute.isStole)
+            executePhase.doWork(&pipeline);
+
+        //Do MEMORY Phase
+        if(!pipeline.memory.isStole)
+            memoryPhase.doWork(&pipeline, &memory);
+
+        //Do WRITE BACK Phase
+        if(!pipeline.writeBack.isStole){
+            writeBackPhase.doWork(&pipeline, x);
+        }
         // increment tact
         if (!pipeline.fetch.isStole) {
             pipeline.decode.instruction = pipeline.fetch.instruction;

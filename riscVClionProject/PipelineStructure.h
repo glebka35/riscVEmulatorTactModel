@@ -33,6 +33,7 @@ typedef struct DecodeVar{//Variables for Decode Phase
     bool isStole;
     bool isMemoryNeed;
     bool isWriteBackNeed;
+    bool writeEnable;
 }DecodeVar;
 
 typedef struct ExecuteVar{//Variables for Execute Phase
@@ -45,6 +46,7 @@ typedef struct ExecuteVar{//Variables for Execute Phase
     bool isStole;
     bool isMemoryNeed;
     bool isWriteBackNeed;
+    bool writeEnable;
 }ExecuteVar;
 
 typedef struct MemoryVar{//Variables for Memory Phase
@@ -52,6 +54,7 @@ typedef struct MemoryVar{//Variables for Memory Phase
     unsigned int wdata;
     unsigned int rdata;
     unsigned int regNumForWB;
+    bool writeEnable;
     bool isStole;
     bool isWriteBackNeed;
     bool isMemoryNeed;
@@ -60,7 +63,6 @@ typedef struct MemoryVar{//Variables for Memory Phase
 typedef struct WriteBackVar{//Variables for Write Back
     unsigned int wd;
     unsigned int regNumForWB;
-    unsigned int addr;
     bool isStole;
 
 }WriteBackVar;

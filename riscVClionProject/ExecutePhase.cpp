@@ -3,3 +3,19 @@
 //
 
 #include "ExecutePhase.h"
+
+void ExecutePhase::doWork(PipelineStructure *pipeline) {
+    switch(pipeline->execute.operation){
+        case SUM:
+            pipeline->execute.rd = pipeline->execute.rs1 + pipeline->execute.rs2;
+            break;
+        case SUB:
+            pipeline->execute.rd = pipeline->execute.rs1 - pipeline->execute.rs2;
+            break;
+        case XOR:
+            pipeline->execute.rd = pipeline->execute.rs1 ^ pipeline->execute.rs2;
+            break;
+        default:
+            std::cout<<"Unrecognized operation in ALU"<<std::endl;
+    }
+}

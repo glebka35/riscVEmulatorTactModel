@@ -6,8 +6,11 @@
 #define TACTICMODEL_MEMORYPHASE_H
 
 #include "PipelineStructure.h"
+#include "Memory.h"
 
 class MemoryPhase{
+public:
+    void doWork(PipelineStructure *pipeline, Memory *memory);
 
 };
 

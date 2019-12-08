@@ -8,6 +8,8 @@
 #include "PipelineStructure.h"
 
 class WriteBackPhase {
+public:
+    void doWork(PipelineStructure *pipeline, unsigned int *x);
 
 };
 
