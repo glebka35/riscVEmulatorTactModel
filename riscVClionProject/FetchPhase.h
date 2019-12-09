@@ -5,13 +5,14 @@
 #ifndef TACTICMODEL_FETCHPHASE_H
 #define TACTICMODEL_FETCHPHASE_H
 
-#include "PipelineStructure.h"
 #include <cstdint>
+#include "PipelineStructure.h"
 #include "Memory.h"
+#include "PCSelect.h"
 
 class FetchPhase{
 public:
-    void doWork(PipelineStructure *pipeline, uint32_t *pc, Memory *memory);
+    void doWork(PipelineStructure *pipeline, Memory *memory, PCSelect *pcSelect, unsigned int *pc);
 
 };
 

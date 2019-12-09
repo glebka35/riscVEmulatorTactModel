@@ -11,4 +11,5 @@ void MemoryPhase::doWork(PipelineStructure *pipeline, Memory *memory) {
         memory->write_32(address, pipeline->memory.wdata);
     else
         pipeline->memory.rdata = memory->read_32(address);
+    pipeline->memory.isMemoryNeed = false;
 }

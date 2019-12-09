@@ -12,6 +12,7 @@
 #include "MemoryPhase.h"
 #include "WriteBackPhase.h"
 #include "PipelineStructure.h"
+#include "PCSelect.h"
 
 #include <fstream>
 
@@ -22,6 +23,10 @@ public:
     ~Emulator();
     // Main memory
     Memory memory;
+
+    //PC Select
+    PCSelect pcSelect;
+
 
     // Pipeline phases
     FetchPhase fetchPhase;
@@ -39,8 +44,6 @@ public:
     // Pipelined structure
     PipelineStructure pipeline;
 
-    void start();
-    void end();
     void loadProgramToMemory(std::string fileName);
     void printState();
 

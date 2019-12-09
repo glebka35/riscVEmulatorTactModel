@@ -4,8 +4,10 @@
 
 #include "FetchPhase.h"
 
-void FetchPhase::doWork(PipelineStructure *pipeline, uint32_t *pc, Memory *memory) {
+
+void FetchPhase::doWork(PipelineStructure *pipeline, Memory *memory, PCSelect *pcselect, unsigned int *pc) {
+    *pc =  pcselect->getPC();
     uint32_t myInstruction = memory->read_32(*pc);
-    *pc = *pc + 4;
+    pcselect->setPCplus4(*pc);
     pipeline->fetch.instruction = myInstruction;
 }

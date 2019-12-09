@@ -3,14 +3,14 @@
 //
 
 #include "DecodePhase.h"
-void DecodePhase::doWork(PipelineStructure *pipeline, uint32_t *x, uint32_t *pc) {
-    uint32_t myInstruction = pipeline->fetch.instruction;
+void DecodePhase::doWork(PipelineStructure *pipeline, uint32_t *x, uint32_t *pc, PCSelect *pcselect) {
+    uint32_t myInstruction = pipeline->decode.instruction;
     switch (myInstruction & 0x7F) {
         case R_TYPE_OPCODE:
             decode(rTypeInstruction(myInstruction), pipeline, x);
             break;
         case I_TYPE_OPCODE:
-            decode(iTypeInstruction(myInstruction), pipeline, x, pc);
+            decode(iTypeInstruction(myInstruction), pipeline, x, pc, pcselect);
             break;
 //        case U_TYPE_OPCODE:
 //            decode(uTypeInstruction(myInstruction), pipeline, x);
@@ -26,8 +26,9 @@ void DecodePhase::doWork(PipelineStructure *pipeline, uint32_t *x, uint32_t *pc)
             break;
         case I_TYPE_OPCODE_LOAD:
             decode(iLoadTypeInstruction(myInstruction), pipeline, x);
+            break;
         case I_TYPE_OPCODE_JALR:
-            decode(iTypeInstruction(myInstruction), pipeline, x, pc);
+            decode(iTypeInstruction(myInstruction), pipeline, x, pc, pcselect);
             break;
 //        default:
 //            isEnd = true;
@@ -44,57 +45,69 @@ void DecodePhase::doWork(PipelineStructure *pipeline, uint32_t *x, uint32_t *pc)
 void DecodePhase::decode(rTypeInstruction rType, PipelineStructure *pipeline, uint32_t *x) {
     uint8_t rs1 = rType.rs1;
     uint8_t rs2 = rType.rs2;
-    uint8_t rd = rType.rd;
-    pipeline->decode.rs1 = x[rs1];
-    pipeline->decode.rs2 = x[rs2];
-    pipeline->decode.isImmSelect = false;
-    pipeline->decode.isMemoryNeed = false;
-    pipeline->decode.isWriteBackNeed = true;
-    switch (rType.fullInstruction & R_TYPE_MASK) {
-        case add_value:
-            pipeline->decode.operation = ADD;
-            break;
-        case xor_value:
-            pipeline->decode.operation = XOR;
-            break;
-        case sub_value:
-            pipeline->decode.operation = SUB;
-            break;
+    if(rs1 == pipeline->decode.regNumForWB || rs2 == pipeline->decode.regNumForWB){//Stole
+        pipeline->decode.isStole = true;
+    } else {
+        pipeline->decode.isStole = false;
+        pipeline->decode.regNumForWB = rType.rd;
+        pipeline->decode.rs1 = x[rs1];
+        pipeline->decode.rs2 = x[rs2];
+        pipeline->decode.isImmSelect = false;
+        pipeline->decode.isMemoryNeed = false;
+        pipeline->decode.isWriteBackNeed = true;
+        switch (rType.fullInstruction & R_TYPE_MASK) {
+            case add_value:
+                pipeline->decode.operation = ADD;
+                break;
+            case xor_value:
+                pipeline->decode.operation = XOR;
+                break;
+            case sub_value:
+                pipeline->decode.operation = SUB;
+                break;
+        }
     }
 }
 
-void DecodePhase::decode(iTypeInstruction iType, PipelineStructure *pipeline, uint32_t *x, uint32_t *pc) {
+void DecodePhase::decode(iTypeInstruction iType, PipelineStructure *pipeline, uint32_t *x, uint32_t *pc, PCSelect *pcselect) {
     uint8_t rs1 = iType.rs1;
     uint32_t imm12 = iType.imm12;
     uint8_t rd = iType.rd;
-    if ((imm12 & 0x800) == 2048){
-        imm12 = imm12 | 0xFFFFF000;
-    }
-    pipeline->decode.rs1 = x[rs1];
-    pipeline->decode.rs2 = imm12;
-    pipeline->decode.isImmSelect = true;
-    pipeline->decode.isMemoryNeed = false;
-    pipeline->decode.isWriteBackNeed = true;
-    switch (iType.fullInstruction & I_TYPE_MASK) {
-        case addi_value:
-        pipeline->decode.operation = ADD;
-            break;
+    if(rs1 == pipeline->decode.regNumForWB){
+        pipeline->decode.isStole = true;
+    } else {
+        pipeline->decode.isStole = false;
+        pipeline->decode.regNumForWB = rd;
+        if ((imm12 & 0x800) == 2048) {
+            imm12 = imm12 | 0xFFFFF000;
+        }
+        pipeline->decode.isMemoryNeed = false;
+        pipeline->decode.isWriteBackNeed = true;
+        switch (iType.fullInstruction & I_TYPE_MASK) {
+            case addi_value:
+                pipeline->decode.operation = ADD;
+                pipeline->decode.rd1 = x[rs1];
+                pipeline->decode.rd2 = imm12;
+                pipeline->decode.isImmSelect = true;
+                break;
 
-        case jalr_value:
+            case jalr_value:
+                pipeline->decode.operation = ADD;
+                pipeline->decode.rd1 = *pc;
+                pipeline->decode.rd2 = 4;
+                pipeline->decode.isImmSelect = false;
+                pcselect->setJabs(x[rs1] + imm12);
+                break;
+        }
+        switch (iType.fullInstruction & I_TYPE_MASK_SHIFT) {
+            case slli_value:
+                pipeline->decode.operation = SHIFT_LEFT;
+                break;
 
-            pipeline->decode.operation = ADD;
-            x[rd] = *pc + 4;
-            *pc = (x[rs1] + imm12) & 0xFFFFFFFE;
-            break;
-    }
-    switch (iType.fullInstruction & I_TYPE_MASK_SHIFT) {
-        case slli_value:
-            pipeline->decode.operation = SHIFT_LEFT;
-            break;
-
-        case srai_value:
-            pipeline->decode.operation = SHIFT_RIGHT;
-            break;
+            case srai_value:
+                pipeline->decode.operation = SHIFT_RIGHT;
+                break;
+        }
     }
 
 }
@@ -129,93 +142,109 @@ void DecodePhase::decode(jTypeInstruction jType, PipelineStructure *pipeline, ui
 void DecodePhase::decode(iLoadTypeInstruction iLoadType, PipelineStructure *pipeline, uint32_t *x) {
     uint8_t rs1 = iLoadType.rs1;
     uint32_t imm12 = iLoadType.imm12;
-    uint8_t rd = iLoadType.rd;
-    switch (iLoadType.fullInstruction & I_TYPE_MASK_LOAD) {
-        case lw_value:
-            if ((imm12 & 0x800) == 2048) {
-                imm12 = imm12 | 0xFFFFF000;
-            }
-            pipeline->decode.rs1 = x[rs1];
-            pipeline->decode.rs2 = imm12;
-            pipeline->decode.operation = ADD;
-            pipeline->decode.isImmSelect = true;
-            pipeline->decode.isMemoryNeed = true;
-            pipeline->decode.isWriteBackNeed = true;
+    if(rs1 == pipeline->decode.regNumForWB){
+        pipeline->decode.isStole = true;
+    } else {
+        pipeline->decode.isStole = false;
+        uint8_t rd = iLoadType.rd;
+        pipeline->decode.regNumForWB = rd;
+        switch (iLoadType.fullInstruction & I_TYPE_MASK_LOAD) {
+            case lw_value:
+                if ((imm12 & 0x800) == 2048) {
+                    imm12 = imm12 | 0xFFFFF000;
+                }
+                pipeline->decode.rd1 = x[rs1];
+                pipeline->decode.rd2 = imm12;
+                pipeline->decode.operation = ADD;
+                pipeline->decode.isImmSelect = true;
+                pipeline->decode.isMemoryNeed = true;
+                pipeline->decode.writeEnable = false;
+                pipeline->decode.isWriteBackNeed = true;
 //            x[rd] = memory.read_32(x[rs1] + imm12);
 //            pc+=4;
-            break;
+                break;
+        }
     }
 }
 
 void DecodePhase::decode(sTypeInstruction sType, PipelineStructure *pipeline, uint32_t *x) {
     uint8_t rs1 = sType.rs1;
     uint8_t rs2 = sType.rs2;
-    uint32_t imm12 = sType.imm12;
-    switch (sType.fullInstruction & S_TYPE_MASK) {
-        case sw_value:
-            if ((imm12 & 0x800) == 2048){
-                imm12 = imm12 | 0xFFFFF000;
-            }
-            pipeline->decode.rs1 = x[rs1];
-            pipeline->decode.rs2 = imm12;
-            pipeline->decode.operation = ADD;
-            pipeline->decode.isImmSelect = true;
-            pipeline->decode.isMemoryNeed = true;
-            pipeline->decode.isWriteBackNeed = true;
+    if(rs1 == pipeline->decode.regNumForWB || rs2 == pipeline->decode.regNumForWB){
+        pipeline->decode.isStole = true;
+    } else {
+        pipeline->decode.isStole = false;
+        uint32_t imm12 = sType.imm12;
+        switch (sType.fullInstruction & S_TYPE_MASK) {
+            case sw_value:
+                if ((imm12 & 0x800) == 2048) {
+                    imm12 = imm12 | 0xFFFFF000;
+                }
+                pipeline->decode.rd1 = x[rs1];
+                pipeline->decode.rd2 = imm12;
+                pipeline->decode.operation = ADD;
+                pipeline->decode.isImmSelect = true;
+                pipeline->decode.isMemoryNeed = true;
+                pipeline->decode.isWriteBackNeed = false;
+                pipeline->decode.writeEnable = true;
+                pipeline->decode.wData = x[rs2];
 //            memory.write_32(x[rs1] + imm12, x[rs2]);
 //            pc+=4;
-            break;
+                break;
+        }
     }
 }
 
-//void DecodePhase::decode(bTypeInstruction bType, PipelineStructure *pipeline, uint32_t *x) {
-//    uint8_t rs1 = bType.rs1;
-//    uint8_t rs2 = bType.rs2;
-//    uint32_t imm12 = bType.imm12;
-//
-//    switch (bType.fullInstruction & B_TYPE_MASK) {
-//        case blt_value:
-//            if ((imm12 & 0x800) == 2048) {
-//                imm12 = imm12 | 0xFFFFF000;
-//            }
-//            if (x[rs1] < x[rs2]) {
-//                pc = pc + imm12;
-//            } else{
-//                pc += 4;
-//            }
-//            break;
-//
-//        case beq_value:
-//            if ((imm12 & 0x800) == 2048) {
-//                imm12 = imm12 | 0xFFFFF000;
-//            }
-//            if (x[rs1] == x[rs2]) {
-//                pc = pc + imm12;
-//            } else{
-//                pc += 4;
-//            }
-//            break;
-//
-//        case bne_value:
-//            if ((imm12 & 0x800) == 2048) {
-//                imm12 = imm12 | 0xFFFFF000;
-//            }
-//            if (x[rs1] != x[rs2]) {
-//                pc = pc + imm12;
-//            } else{
-//                pc += 4;
-//            }
-//            break;
-//
-//        case bge_value:
-//            if ((imm12 & 0x800) == 2048) {
-//                imm12 = imm12 | 0xFFFFF000;
-//            }
-//            if (x[rs1] >= x[rs2]) {
-//                pc = pc + imm12;
-//            } else{
-//                pc += 4;
-//            }
-//            break;
-//    }
-//}
+void DecodePhase::decode(bTypeInstruction bType, PipelineStructure *pipeline, uint32_t *x, unsigned int *pc, PCSelect *pcSelect) {
+    uint8_t rs1 = bType.rs1;
+    uint8_t rs2 = bType.rs2;
+    uint32_t imm12 = bType.imm12;
+    if(rs1 == pipeline->decode.regNumForWB || rs2 == pipeline->decode.regNumForWB){
+        pipeline->decode.isStole = true;
+    } else {
+        if ((imm12 & 0x800) == 2048) {
+            imm12 = imm12 | 0xFFFFF000;
+        }
+        pipeline->decode.isMemoryNeed = false;
+        pipeline->decode.isWriteBackNeed = false;
+
+        switch (bType.fullInstruction & B_TYPE_MASK) {
+            case blt_value:
+                pipeline->decode.rd1 = x[rs1];
+                pipeline->decode.rd2 = x[rs2];
+                pipeline->decode.operation = BLT;
+                pcSelect->branch = *pc + imm12;
+
+                if (x[rs1] < x[rs2]) {
+                    pc = pc + imm12;
+                } else {
+                    pc += 4;
+                }
+                break;
+
+            case beq_value:
+                if (x[rs1] == x[rs2]) {
+                    pc = pc + imm12;
+                } else {
+                    pc += 4;
+                }
+                break;
+
+            case bne_value:
+                if (x[rs1] != x[rs2]) {
+                    pc = pc + imm12;
+                } else {
+                    pc += 4;
+                }
+                break;
+
+            case bge_value:
+                if (x[rs1] >= x[rs2]) {
+                    pc = pc + imm12;
+                } else {
+                    pc += 4;
+                }
+                break;
+        }
+    }
+}

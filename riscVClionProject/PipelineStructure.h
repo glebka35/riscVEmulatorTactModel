@@ -4,13 +4,19 @@
 
 #ifndef TACTICMODEL_PIPELINESTRUCTURE_H
 #define TACTICMODEL_PIPELINESTRUCTURE_H
+
+#define NO_STOLE 32
 enum {
     ADD,
     SUB,
     XOR,
     SHIFT_LEFT,
-    SHIFT_RIGHT
-
+    SHIFT_RIGHT,
+    BNE,
+    BGT,
+    BEQ,
+    BGE,
+    BLT
 } AluOperations;
 
 
@@ -27,44 +33,52 @@ typedef struct DecodeVar{//Variables for Decode Phase
     unsigned int rd1;
     unsigned int rd2;
     unsigned int imm;
-    unsigned int regNumForWB;
+    unsigned int wData;
+    unsigned int regNumForWB = NO_STOLE;
     int operation;
     bool isImmSelect;
     bool isStole;
-    bool isMemoryNeed;
-    bool isWriteBackNeed;
+    bool isMemoryNeed = false;
+    bool isWriteBackNeed = false;
     bool writeEnable;
+    bool bubble = false;
+    bool isBranch = false;
 }DecodeVar;
 
 typedef struct ExecuteVar{//Variables for Execute Phase
+    unsigned int instruction;
     unsigned int rs1;
     unsigned int rs2;
     unsigned int rd;
-    unsigned int data;
+    unsigned int wData;
     unsigned int regNumForWB;
     int operation;
     bool isStole;
-    bool isMemoryNeed;
-    bool isWriteBackNeed;
+    bool isMemoryNeed = false;
+    bool isWriteBackNeed = false;
     bool writeEnable;
+    bool bubble = false;
+    bool isBranch = false;
 }ExecuteVar;
 
 typedef struct MemoryVar{//Variables for Memory Phase
+    unsigned int instruction;
     unsigned int addr;
     unsigned int wdata;
     unsigned int rdata;
     unsigned int regNumForWB;
     bool writeEnable;
-    bool isStole;
-    bool isWriteBackNeed;
-    bool isMemoryNeed;
+    bool isStole ;
+    bool isWriteBackNeed = false;
+    bool isMemoryNeed = false;
 }MemoryVar;
 
 typedef struct WriteBackVar{//Variables for Write Back
+    unsigned int instruction;
     unsigned int wd;
     unsigned int regNumForWB;
     bool isStole;
-
+    bool isWriteBackNeed = false;
 }WriteBackVar;
 
 
