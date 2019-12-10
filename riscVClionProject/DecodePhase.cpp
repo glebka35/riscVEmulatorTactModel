@@ -100,10 +100,10 @@ void DecodePhase::decode(iTypeInstruction iType, PipelineStructure *pipeline, ui
 
             case jalr_value:
                 pipeline->decode.operation = ADD;
-                pipeline->decode.rd1 = *pc;
+                pipeline->decode.rd1 = pipeline->decode.pc;
                 pipeline->decode.rd2 = 4;
                 pipeline->decode.isImmSelect = false;
-                pcSelect->setJabs(x[rs1] + imm12 - 4);
+                pcSelect->setJabs(x[rs1] + imm12);
                 break;
         }
         switch (iType.fullInstruction & I_TYPE_MASK_SHIFT) {
@@ -146,10 +146,10 @@ void DecodePhase::decode(jTypeInstruction jType, PipelineStructure *pipeline, ui
             pipeline->decode.isMemoryNeed = false;
             pipeline->decode.isWriteBackNeed = true;
             pipeline->decode.operation = ADD;
-            pipeline->decode.rd1 = *pc;
+            pipeline->decode.rd1 = pipeline->decode.pc;
             pipeline->decode.rd2 = 4;
             pipeline->decode.isImmSelect = false;
-            pcSelect->setJabs(*pc + imm20 - 4);
+            pcSelect->setJabs(pipeline->decode.pc + imm20);
 //            x[rd] = *pc + 4;
 //            *pc = *pc + imm20;
             break;
@@ -229,28 +229,28 @@ void DecodePhase::decode(bTypeInstruction bType, PipelineStructure *pipeline, ui
                 pipeline->decode.rd1 = x[rs1];
                 pipeline->decode.rd2 = x[rs2];
                 pipeline->decode.operation = BLT;
-                pcSelect->branch = *pc + imm12 - 4;
+                pcSelect->branch = pipeline->decode.pc + imm12;
                 break;
 
             case beq_value:
                 pipeline->decode.rd1 = x[rs1];
                 pipeline->decode.rd2 = x[rs2];
                 pipeline->decode.operation = BEQ;
-                pcSelect->branch = *pc + imm12 - 4;
+                pcSelect->branch = pipeline->decode.pc + imm12;
                 break;
 
             case bne_value:
                 pipeline->decode.rd1 = x[rs1];
                 pipeline->decode.rd2 = x[rs2];
                 pipeline->decode.operation = BNE;
-                pcSelect->branch = *pc + imm12 - 4;
+                pcSelect->branch = pipeline->decode.pc + imm12;
                 break;
 
             case bge_value:
                 pipeline->decode.rd1 = x[rs1];
                 pipeline->decode.rd2 = x[rs2];
                 pipeline->decode.operation = BGE;
-                pcSelect->branch = *pc + imm12 - 4;
+                pcSelect->branch = pipeline->decode.pc + imm12;
                 break;
         }
     }

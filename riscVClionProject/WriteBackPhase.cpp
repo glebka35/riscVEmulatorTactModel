@@ -14,16 +14,7 @@ void WriteBackPhase::doWork(PipelineStructure *pipeline, unsigned int *x, bool *
             x[0] = 0;
 #ifdef COSIM
             for (int i = 0; i < 32; i++) {
-                if (i == 1){
-                    if (x[i]==0){
-                        R << 0 << " ";
-                    } else{
-                        R << x[i]-4 << " ";
-                    }
-                }else{
                     R << x[i] << " ";
-
-                }
             }
             R << std::endl;
 #endif

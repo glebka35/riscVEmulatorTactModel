@@ -4,7 +4,7 @@
 int main() {
     Emulator riscV;
 
-    riscV.loadProgramToMemory("ptload.txt");
+    riscV.loadProgramToMemory("ptloadQueen.txt");
     riscV.doWork();
 
     riscV.printState();
