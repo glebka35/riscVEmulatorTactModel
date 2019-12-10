@@ -23,11 +23,13 @@ enum {
 typedef struct FetchVar{
     //Variables for Fetch Phase
     unsigned int instruction = 0;
+    unsigned int pc = 0;
     bool isStole;
 }FetchVar;
 
 typedef struct DecodeVar{//Variables for Decode Phase
     unsigned int instruction = 0;
+    unsigned int pc = 0;
     unsigned int rs1;
     unsigned int rs2;
     unsigned int rd1;

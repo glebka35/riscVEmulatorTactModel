@@ -4,6 +4,7 @@
 
 #include "Emulator.h"
 #define DEBUG 1
+#define COSIM 1
 
 Emulator::Emulator() {
     // Init registers
@@ -39,10 +40,15 @@ void Emulator::loadProgramToMemory(std::string fileName) {
     pc = startAddress;
     pcSelect.setPCplus4(pc - 4);
     std::cout << pc << std::endl;
+    F.close();
 }
 
 
 void Emulator::doWork() {
+#ifdef COSIM
+    std::ofstream R;
+    R.open("tacticRegisters.txt", std::ios::out);
+#endif
     int count = 0;
     while (pipeline.fetch.instruction || pipeline.decode.instruction || pipeline.execute.instruction || pipeline.memory.instruction
     || pipeline.writeBack.instruction || pc) {
@@ -104,7 +110,7 @@ void Emulator::doWork() {
 #endif
         if (!pipeline.writeBack.isStole) {
             if (pipeline.writeBack.isWriteBackNeed) {
-                writeBackPhase.doWork(&pipeline, x, xWriteBack);
+                writeBackPhase.doWork(&pipeline, x, xWriteBack, R);
             }
         }
 
@@ -170,14 +176,20 @@ void Emulator::doWork() {
 //            }
 
 
-            if (!pipeline.fetch.isStole)
+            if (!pipeline.fetch.isStole) {
                 pipeline.decode.instruction = pipeline.fetch.instruction;
+                pipeline.decode.pc = pipeline.fetch.pc;
+            }
+
         }
         count += 1;
 #ifdef DEBUG
         std::cout << std::endl;
 #endif
     }
+#ifdef COSIM
+    R.close();
+#endif
 
 //    std::cout << count << " : ";
 //    // Last writeBack
