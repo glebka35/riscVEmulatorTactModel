@@ -22,12 +22,12 @@ enum {
 
 typedef struct FetchVar{
     //Variables for Fetch Phase
-    unsigned int instruction;
+    unsigned int instruction = 0;
     bool isStole;
 }FetchVar;
 
 typedef struct DecodeVar{//Variables for Decode Phase
-    unsigned int instruction;
+    unsigned int instruction = 0;
     unsigned int rs1;
     unsigned int rs2;
     unsigned int rd1;
@@ -46,7 +46,7 @@ typedef struct DecodeVar{//Variables for Decode Phase
 }DecodeVar;
 
 typedef struct ExecuteVar{//Variables for Execute Phase
-    unsigned int instruction;
+    unsigned int instruction = 0;
     unsigned int rs1;
     unsigned int rs2;
     unsigned int rd;
@@ -62,7 +62,7 @@ typedef struct ExecuteVar{//Variables for Execute Phase
 }ExecuteVar;
 
 typedef struct MemoryVar{//Variables for Memory Phase
-    unsigned int instruction;
+    unsigned int instruction = 0;
     unsigned int addr;
     unsigned int wdata;
     unsigned int rdata;
@@ -74,7 +74,7 @@ typedef struct MemoryVar{//Variables for Memory Phase
 }MemoryVar;
 
 typedef struct WriteBackVar{//Variables for Write Back
-    unsigned int instruction;
+    unsigned int instruction = 0;
     unsigned int wd;
     unsigned int regNumForWB;
     bool isStole;

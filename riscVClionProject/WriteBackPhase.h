@@ -11,7 +11,7 @@
 
 class WriteBackPhase {
 public:
-    void doWork(PipelineStructure *pipeline, unsigned int *x);
+    void doWork(PipelineStructure *pipeline, unsigned int *x, bool *xWriteBack);
 
 };
 

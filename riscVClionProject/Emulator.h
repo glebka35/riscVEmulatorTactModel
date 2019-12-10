@@ -37,6 +37,7 @@ public:
 
     // Registers file
     unsigned int x[32];
+    bool xWriteBack[32];
 
     // Program counter
     unsigned int pc;
